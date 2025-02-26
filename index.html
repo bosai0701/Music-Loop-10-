@@ -11,12 +11,13 @@
 
     <script>
         const audio = document.getElementById("audio");
-
         const fadeDuration = 3; // フェード時間（秒）
+        let isFading = false;  // フェード処理中かどうか
 
         function fadeIn(audioElement) {
+            isFading = true;
             audioElement.volume = 0; // 初期状態は無音
-            audioElement.play();
+            audioElement.play().catch(error => console.error("再生エラー:", error));
 
             let step = 0.05;
             let interval = setInterval(() => {
@@ -24,11 +25,15 @@
                     audioElement.volume = Math.min(audioElement.volume + step, 1);
                 } else {
                     clearInterval(interval);
+                    isFading = false;
                 }
             }, (fadeDuration * 1000) / (1 / step));
         }
 
         function fadeOut(audioElement) {
+            if (isFading) return; // すでにフェード処理中なら実行しない
+            isFading = true;
+
             let step = 0.05;
             let interval = setInterval(() => {
                 if (audioElement.volume > 0) {
@@ -41,15 +46,24 @@
             }, (fadeDuration * 1000) / (1 / step));
         }
 
-        audio.addEventListener("canplaythrough", () => {
-            fadeIn(audio); // 初回フェードイン
+        // 音楽がロードされたらフェードイン
+        audio.addEventListener("loadeddata", () => {
+            console.log("音楽がロードされました");
+            fadeIn(audio);
         });
 
+        // 曲の終わりに近づいたらフェードアウト
         audio.addEventListener("timeupdate", () => {
             if (audio.duration - audio.currentTime <= fadeDuration) {
                 fadeOut(audio);
             }
         });
+
+        // ユーザーが再生したらフェードイン
+        audio.addEventListener("play", () => {
+            fadeIn(audio);
+        });
+
     </script>
 
 </body>
