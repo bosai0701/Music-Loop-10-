@@ -3,68 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MP3 ループ再生（クロスフェード付き）</title>
+    <title>MP3 ループ再生</title>
 </head>
 <body>
 
-    <audio id="audio" src="music.mp3" controls></audio> <!-- コントロールバーを表示 -->
-
-    <script>
-        const audio = document.getElementById("audio");
-        const fadeDuration = 3; // フェード時間（秒）
-        let isFading = false;  // フェード処理中かどうか
-
-        function fadeIn(audioElement) {
-            isFading = true;
-            audioElement.volume = 0; // 初期状態は無音
-            audioElement.play().catch(error => console.error("再生エラー:", error));
-
-            let step = 0.05;
-            let interval = setInterval(() => {
-                if (audioElement.volume < 1) {
-                    audioElement.volume = Math.min(audioElement.volume + step, 1);
-                } else {
-                    clearInterval(interval);
-                    isFading = false;
-                }
-            }, (fadeDuration * 1000) / (1 / step));
-        }
-
-        function fadeOut(audioElement) {
-            if (isFading) return; // すでにフェード処理中なら実行しない
-            isFading = true;
-
-            let step = 0.05;
-            let interval = setInterval(() => {
-                if (audioElement.volume > 0) {
-                    audioElement.volume = Math.max(audioElement.volume - step, 0);
-                } else {
-                    clearInterval(interval);
-                    audioElement.currentTime = 0; // 曲の頭に戻す
-                    fadeIn(audioElement); // フェードインして再生
-                }
-            }, (fadeDuration * 1000) / (1 / step));
-        }
-
-        // 音楽がロードされたらフェードイン
-        audio.addEventListener("loadeddata", () => {
-            console.log("音楽がロードされました");
-            fadeIn(audio);
-        });
-
-        // 曲の終わりに近づいたらフェードアウト
-        audio.addEventListener("timeupdate", () => {
-            if (audio.duration - audio.currentTime <= fadeDuration) {
-                fadeOut(audio);
-            }
-        });
-
-        // ユーザーが再生したらフェードイン
-        audio.addEventListener("play", () => {
-            fadeIn(audio);
-        });
-
-    </script>
+    <audio controls autoplay loop>
+        <source src="10℃.mp3" type="audio/mpeg">
+        お使いのブラウザはオーディオ要素をサポートしていません。
+    </audio>
 
 </body>
 </html>
