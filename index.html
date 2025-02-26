@@ -3,103 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MP3 クロスフェード</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        input {
-            width: 300px;
-            margin-top: 10px;
-        }
-    </style>
+    <title>MP3 ループ再生（クロスフェード付き）</title>
 </head>
 <body>
 
-    <h2>MP3 クロスフェード再生</h2>
-    
-    <!-- スライダーでフェード時間を調整 -->
-    <label for="fadeSlider">フェード時間 (秒): <span id="fadeValue">2</span></label>
-    <input type="range" id="fadeSlider" min="0.1" max="5" step="0.1" value="2">
-
-    <br><br>
-
-    <button id="startButton">再生</button>
-    <button id="stopButton">停止</button>
-
-    <!-- 2つのオーディオ要素 -->
-    <audio id="audio1" src="10℃_2.mp3"></audio>
-    <audio id="audio2" src="10℃_2.mp3"></audio>
+    <audio id="audio" src="music.mp3"></audio>
 
     <script>
-        let fadeDuration = 2.0; // 初期フェード時間
-        let audio1 = document.getElementById("audio1");
-        let audio2 = document.getElementById("audio2");
-        let currentAudio = audio1;
-        let nextAudio = audio2;
-        let fadeInterval;
-        let isPlaying = false;
+        const audio = document.getElementById("audio");
 
-        // スライダー変更イベント
-        document.getElementById("fadeSlider").addEventListener("input", function () {
-            fadeDuration = parseFloat(this.value);
-            document.getElementById("fadeValue").innerText = fadeDuration;
-        });
+        const fadeDuration = 2.5; // フェード時間（秒）
+        
+        audio.volume = 0;
+        audio.play();
+        
+        function fadeIn() {
+            let fadeStep = 0.05;
+            let intervalTime = fadeDuration * 1000 / (1 / fadeStep);
+            let fadeInInterval = setInterval(() => {
+                if (audio.volume < 1) {
+                    audio.volume = Math.min(audio.volume + fadeStep, 1);
+                } else {
+                    clearInterval(fadeInInterval);
+                }
+            }, intervalTime);
+        }
 
-        // 再生ボタン
-        document.getElementById("startButton").addEventListener("click", function () {
-            if (!isPlaying) {
-                isPlaying = true;
-                startCrossfade();
+        function fadeOut() {
+            let fadeStep = 0.05;
+            let intervalTime = fadeDuration * 1000 / (1 / fadeStep);
+            let fadeOutInterval = setInterval(() => {
+                if (audio.volume > 0) {
+                    audio.volume = Math.max(audio.volume - fadeStep, 0);
+                } else {
+                    audio.currentTime = 0;
+                    audio.play();
+                    fadeIn();
+                    clearInterval(fadeOutInterval);
+                }
+            }, intervalTime);
+        }
+
+        audio.addEventListener("timeupdate", () => {
+            if (audio.duration - audio.currentTime <= fadeDuration) {
+                fadeOut();
             }
         });
 
-        // 停止ボタン
-        document.getElementById("stopButton").addEventListener("click", function () {
-            isPlaying = false;
-            clearInterval(fadeInterval);
-            audio1.pause();
-            audio2.pause();
-            audio1.currentTime = 0;
-            audio2.currentTime = 0;
-            audio1.volume = 1;
-            audio2.volume = 0;
-        });
-
-        function startCrossfade() {
-            audio1.volume = 1;
-            audio2.volume = 0;
-            audio1.play();
-
-            fadeInterval = setInterval(() => {
-                if (!isPlaying) return;
-                
-                nextAudio.currentTime = 0;
-                nextAudio.play();
-                
-                let fadeStep = 0.1 / fadeDuration; // 0.1秒ごとの音量変化量
-                let fadeTime = 0;
-
-                let fadeEffect = setInterval(() => {
-                    if (!isPlaying) {
-                        clearInterval(fadeEffect);
-                        return;
-                    }
-
-                    fadeTime += 0.1;
-                    currentAudio.volume = Math.max(0, 1 - fadeStep * fadeTime);
-                    nextAudio.volume = Math.min(1, fadeStep * fadeTime);
-
-                    if (fadeTime >= fadeDuration) {
-                        clearInterval(fadeEffect);
-                        currentAudio.pause();
-                        [currentAudio, nextAudio] = [nextAudio, currentAudio]; // 交互に切り替え
-                    }
-                }, 100);
-            }, (audio1.duration - fadeDuration) * 1000); // フェード前に切り替え
-        }
+        fadeIn();
     </script>
 
 </body>
