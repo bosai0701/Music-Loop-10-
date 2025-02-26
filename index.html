@@ -12,45 +12,44 @@
     <script>
         const audio = document.getElementById("audio");
 
-        const fadeDuration = 2.5; // フェード時間（秒）
-        
-        audio.volume = 0;
-        audio.play();
-        
-        function fadeIn() {
-            let fadeStep = 0.05;
-            let intervalTime = fadeDuration * 1000 / (1 / fadeStep);
-            let fadeInInterval = setInterval(() => {
-                if (audio.volume < 1) {
-                    audio.volume = Math.min(audio.volume + fadeStep, 1);
+        const fadeDuration = 3; // フェード時間（秒）
+
+        function fadeIn(audioElement) {
+            audioElement.volume = 0; // 初期状態は無音
+            audioElement.play();
+
+            let step = 0.05;
+            let interval = setInterval(() => {
+                if (audioElement.volume < 1) {
+                    audioElement.volume = Math.min(audioElement.volume + step, 1);
                 } else {
-                    clearInterval(fadeInInterval);
+                    clearInterval(interval);
                 }
-            }, intervalTime);
+            }, (fadeDuration * 1000) / (1 / step));
         }
 
-        function fadeOut() {
-            let fadeStep = 0.05;
-            let intervalTime = fadeDuration * 1000 / (1 / fadeStep);
-            let fadeOutInterval = setInterval(() => {
-                if (audio.volume > 0) {
-                    audio.volume = Math.max(audio.volume - fadeStep, 0);
+        function fadeOut(audioElement) {
+            let step = 0.05;
+            let interval = setInterval(() => {
+                if (audioElement.volume > 0) {
+                    audioElement.volume = Math.max(audioElement.volume - step, 0);
                 } else {
-                    audio.currentTime = 0;
-                    audio.play();
-                    fadeIn();
-                    clearInterval(fadeOutInterval);
+                    clearInterval(interval);
+                    audioElement.currentTime = 0; // 曲の頭に戻す
+                    fadeIn(audioElement); // フェードインして再生
                 }
-            }, intervalTime);
+            }, (fadeDuration * 1000) / (1 / step));
         }
+
+        audio.addEventListener("canplaythrough", () => {
+            fadeIn(audio); // 初回フェードイン
+        });
 
         audio.addEventListener("timeupdate", () => {
             if (audio.duration - audio.currentTime <= fadeDuration) {
-                fadeOut();
+                fadeOut(audio);
             }
         });
-
-        fadeIn();
     </script>
 
 </body>
